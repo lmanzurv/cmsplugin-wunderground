@@ -1,0 +1,43 @@
+{% load cms_tags sekizai_tags %}
+
+<div id="wunderground-current-temperature-{{ instance.id }}" class="wunderground-current-temperature">
+    <div class="wunderground-info">
+        <p class="wunderground-place"></p>
+        <p>
+            {% if instance.icon %}
+                <span class="wunderground-icon">
+                    {% include 'aldryn_bootstrap3/plugins/includes/icon.html' with icon_class=instance.icon %}
+                </span>
+            {% endif %}
+            <span class="wunderground-temp-c"></span> <span class="wunderground-temp-c-unit">ºC</span> |
+            <span class="wunderground-temp-f"></span> <span class="wunderground-temp-f-unit">ºF</span>
+        </p>
+    </div>
+    <p class="wunderground-error" style="display:none;"></p>
+</div>
+
+{% addtoblock "js" %}
+    <script type="text/javascript">
+        window.addEventListener('load', function() {
+            $.get('{% url "wunderground:current_temperature" instance.id %}', function(data) {
+                var currentTemperature = $('#wunderground-current-temperature-{{ instance.id }}');
+                if(data.hasOwnProperty('error')) {
+                    $(currentTemperature).find('.wunderground-info').css('display', 'none');
+
+                    var error = $(currentTemperature).find('.wunderground-error');
+                    $(error).text(data['error']);
+                    $(error).css('display', 'block');
+                } else {
+                    var place = data['temp']['location'];
+                    $(currentTemperature).find('.wunderground-place').text(place);
+
+                    var tempC = data['temp']['temp_c'];
+                    $(currentTemperature).find('.wunderground-temp-c').text(tempC);
+
+                    var tempF = data['temp']['temp_f'];
+                    $(currentTemperature).find('.wunderground-temp-f').text(tempF);
+                }
+            });
+        });
+    </script>
+{% endaddtoblock %}
